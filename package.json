@@ -1,0 +1,15 @@
+{
+  "name": "campusboost-root",
+  "version": "1.0.0",
+  "description": "CampusBoost - Web3 Student Milestone Escrow & Sponsorship Platform",
+  "scripts": {
+    "dev": "npm --prefix frontend run dev",
+    "build": "npm --prefix frontend run build",
+    "start": "npm --prefix frontend start",
+    "test:contracts": "npm --prefix contracts test",
+    "compile:contracts": "npm --prefix contracts run compile"
+  },
+  "keywords": ["web3", "escrow", "crowdfunding", "hackathon"],
+  "author": "CampusBoost Team",
+  "license": "MIT"
+}

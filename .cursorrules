@@ -1,0 +1,15 @@
+# CampusBoost — Cursor AI Rules & Directives
+
+Read and follow `AGENTS.md` in the workspace root for complete architectural and business context.
+
+## Core Directives for this Project:
+1. **Terminology**: NEVER use "invest/investment/equity/shares". ALWAYS use "sponsor/sponsorship/milestone escrow/backer".
+2. **UI Theme**: Strict adherence to the 60-20-20 Clean White and Blue theme (60% White/Slate-50, 20% Deep Navy text/structure, 20% Vibrant Blue accents). Do NOT revert to dark mode unless explicitly instructed.
+3. **Escrow Logic**: Funding MUST stay locked in the contract until milestones are approved. Include a 2% platform fee on milestone releases.
+4. **Next.js 16 Rules**:
+   - Wrap client components using `useParams`, `usePathname`, or `useSearchParams` inside `<Suspense fallback={...}>`.
+   - Do NOT use `export const dynamic = 'force-dynamic'` in client components (incompatible with Next.js 16 cacheComponents).
+5. **Commands**:
+   - Frontend dev: `cd frontend && npm run dev`
+   - Frontend build: `cd frontend && npm run build`
+   - Contract tests: `cd contracts && npx hardhat test`
