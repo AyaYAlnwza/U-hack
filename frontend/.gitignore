@@ -33,6 +33,10 @@ yarn-error.log*
 # env files (can opt-in for committing if needed)
 .env*
 
+# local marketplace data, including public seller contact details
+/data/sale-listings.json
+/data/subscriptions.json
+
 # vercel
 .vercel
 

@@ -38,13 +38,56 @@ export interface SponsorPerk {
   popular?: boolean;
 }
 
+export enum DirectiveStatus {
+  Pending = 'pending',
+  Accepted = 'accepted',
+  Declined = 'declined',
+}
+
+export interface SponsorCampDirective {
+  id: string;
+  sponsorAddress: string;
+  sponsorName: string;
+  sponsorAvatar?: string;
+  amount: number; // in ETH
+  amountTHB?: number; // demo pledge in Thai baht; no payment is processed
+  title: string; // เช่น "ขอเพิ่ม Track AI & Data Analytics"
+  directionRequest: string; // คำขอทิศทางการจัดกิจกรรมค่าย
+  expectedOutcomes: string; // ผลลัพธ์หรือผลสัมฤทธิ์ที่คาดหวังให้เกิดขึ้นกับเยาวชน
+  sponsorPerksOffered?: string; // สิ่งที่สปอนเซอร์จะสนับสนุนเพิ่มเติม (เช่น วิทยากร, ของรางวัล, Cloud Credits)
+  status: DirectiveStatus;
+  createdAt: string;
+  reviewedAt?: string;
+  responseNote?: string; // คำชี้แจง/การตอบรับจากทีมผู้จัดค่าย
+  txHash?: string;
+}
+
+export interface CampDetails {
+  targetAudience: string; // กลุ่มเป้าหมาย เช่น "นักเรียนมัธยมปลายและนิสิตนักศึกษา 120 คน"
+  duration: string; // ระยะเวลา เช่น "3 วัน 2 คืน (15-17 พ.ย. 2026)"
+  location: string; // สถานที่จัด เช่น "คณะวิศวกรรมศาสตร์ จุฬาลงกรณ์มหาวิทยาลัย"
+  openForDirectives: boolean; // เปิดรับคำขอทิศทางจากสปอนเซอร์
+}
+
+export interface ProjectCustomAgreement {
+  enabled: boolean;
+  title: string;
+  amount: number; // in ETH
+  summary: string;
+  perks: string[];
+  contractTerms: string;
+  quota?: number;
+  claimedCount?: number;
+}
+
 export interface Project {
   id: string;
+  creatorProfileId?: string;
   onChainId?: number;
   title: string;
   tagline: string;
   description: string;
-  category: 'AI' | 'Environment' | 'Health' | 'Education' | 'Community';
+  category: 'AI' | 'Environment' | 'Health' | 'Education' | 'Community' | 'Camp';
   ownerAddress: string;
   ownerName: string;
   ownerAvatar?: string;
@@ -52,18 +95,29 @@ export interface Project {
   coverImage: string;
   goalAmount: number;
   raisedAmount: number;
+  campGoalTHB?: number;
+  campRaisedTHB?: number;
   deadline: string;
   status: ProjectStatus;
   milestones: Milestone[];
   sponsorsCount: number;
   featured?: boolean;
+  isCampProject?: boolean;
+  campDetails?: CampDetails;
+  campDirectives?: SponsorCampDirective[];
+  customAgreement?: ProjectCustomAgreement;
   backersList?: {
     address: string;
     amount: number;
+    amountTHB?: number;
     packageId: number;
     tierName: string;
     timestamp: string;
     txHash?: string;
+    isCustomAgreement?: boolean;
+    agreementTitle?: string;
+    isDirective?: boolean;
+    directiveTitle?: string;
   }[];
   updates?: {
     id: string;

@@ -3,14 +3,22 @@
 import React from 'react';
 import Link from 'next/link';
 import { useWeb3 } from '@/context/Web3Context';
-import { MilestoneStatus } from '@/types/campusboost';
+import { MilestoneStatus, DirectiveStatus, SponsorCampDirective } from '@/types/campusboost';
 import { 
   Briefcase, 
   CheckCircle2, 
   ExternalLink, 
   Award, 
   FileCheck,
-  Check
+  Check,
+  Handshake,
+  FileText,
+  Sparkles,
+  Tent,
+  Compass,
+  Clock,
+  Target,
+  AlertCircle
 } from 'lucide-react';
 
 export default function SponsorDashboardPage() {
@@ -20,6 +28,7 @@ export default function SponsorDashboardPage() {
   const pendingApprovals: { projectId: string; projectTitle: string; milestoneIdx: number; milestone: typeof projects[0]['milestones'][0] }[] = [];
 
   projects.forEach((p) => {
+    if (p.isCampProject || p.category === 'Camp') return;
     p.milestones.forEach((m, idx) => {
       if (m.status === MilestoneStatus.Submitted) {
         pendingApprovals.push({
@@ -29,6 +38,34 @@ export default function SponsorDashboardPage() {
           milestone: m,
         });
       }
+    });
+  });
+
+  // Find projects with active custom agreements
+  const activeAgreements = projects
+    .filter((p) => p.category !== 'Camp' && !p.isCampProject && p.customAgreement && p.customAgreement.enabled)
+    .map((p) => ({
+      projectId: p.id,
+      projectTitle: p.title,
+      university: p.university,
+      agreement: p.customAgreement!,
+      milestonesCount: p.milestones.length,
+    }));
+
+  // Find all Camp Directives across projects
+  const sponsorCampDirectives: {
+    projectId: string;
+    projectTitle: string;
+    directive: SponsorCampDirective;
+  }[] = [];
+
+  projects.forEach((p) => {
+    p.campDirectives?.forEach((d) => {
+      sponsorCampDirectives.push({
+        projectId: p.id,
+        projectTitle: p.title,
+        directive: d,
+      });
     });
   });
 
@@ -62,7 +99,7 @@ export default function SponsorDashboardPage() {
           </div>
           <div>
             <div className="text-xs font-bold text-slate-900">SCB 10X / Corporate Partner</div>
-            <div className="text-[11px] text-emerald-600 font-bold">Tier: Title Sponsor & Verifier</div>
+            <div className="text-[11px] text-emerald-600 font-bold">Role: Strategic Partner & Verifier</div>
           </div>
         </div>
       </div>
@@ -79,7 +116,7 @@ export default function SponsorDashboardPage() {
         <div className="clean-card p-5 border border-slate-200 shadow-xs space-y-1">
           <div className="text-xs text-slate-500 font-medium">การมองเห็นแบรนด์ (Brand Reach)</div>
           <div className="text-2xl font-black text-blue-600">
-            {totalBrandViews.toLocaleString()} <span className="text-xs font-semibold text-slate-500">Impression</span>
+            {totalBrandViews.toLocaleString('en-US')} <span className="text-xs font-semibold text-slate-500">Impression</span>
           </div>
           <div className="text-[11px] text-emerald-600 font-semibold">↑ 18% จากกิจกรรมในมหาวิทยาลัย</div>
         </div>
@@ -219,6 +256,165 @@ export default function SponsorDashboardPage() {
             <div className="text-[11px] text-slate-500 font-medium">เข้าถึง Talent ด้าน Web3 & AI โดยตรง</div>
           </div>
 
+        </div>
+      </div>
+
+      {/* Camp Directives Tracking Section */}
+      <div className="clean-card p-6 border border-blue-200/90 shadow-xs space-y-5 bg-gradient-to-br from-blue-50/40 via-white to-indigo-50/30">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-blue-100 pb-3">
+          <div>
+            <h2 className="text-base font-bold text-slate-900 flex items-center gap-2">
+              <Tent className="w-5 h-5 text-blue-600" />
+              คำขอทิศทางการจัดกิจกรรมค่าย (Sponsor Camp Directives & Tracks)
+            </h2>
+            <p className="text-xs text-slate-500 mt-0.5">
+              ติดตามสถานะคำขอ Tracks การแข่งขันและเวิร์กช็อปที่ท่านเสนอไปยังผู้จัดค่าย
+            </p>
+          </div>
+          <span className="text-xs text-blue-800 font-bold bg-blue-100 px-3 py-1 rounded-full border border-blue-200">
+            {sponsorCampDirectives.length} คำขอในระบบ
+          </span>
+        </div>
+
+        {sponsorCampDirectives.length > 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {sponsorCampDirectives.map((item, idx) => {
+              const d = item.directive;
+              const isAccepted = d.status === DirectiveStatus.Accepted;
+              const isPending = d.status === DirectiveStatus.Pending;
+
+              return (
+                <div
+                  key={idx}
+                  className={`p-4 sm:p-5 rounded-2xl bg-white border shadow-2xs space-y-3 flex flex-col justify-between ${
+                    isAccepted ? 'border-emerald-200' : isPending ? 'border-amber-200' : 'border-slate-200'
+                  }`}
+                >
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      {isAccepted && (
+                        <span className="text-[10px] font-bold text-emerald-800 bg-emerald-100 px-2 py-0.5 rounded-full border border-emerald-200 flex items-center gap-1">
+                          <CheckCircle2 className="w-3 h-3 text-emerald-600" /> ตอบรับแล้ว
+                        </span>
+                      )}
+                      {isPending && (
+                        <span className="text-[10px] font-bold text-amber-800 bg-amber-100 px-2 py-0.5 rounded-full border border-amber-200 flex items-center gap-1">
+                          <Clock className="w-3 h-3 text-amber-600" /> รอผู้จัดค่ายพิจารณา
+                        </span>
+                      )}
+                      <span className="text-sm font-black text-blue-700">
+                        +{(d.amountTHB ?? Math.round(d.amount * 120000)).toLocaleString('th-TH')} บาท
+                      </span>
+                    </div>
+
+                    <h3 className="font-bold text-slate-900 text-sm leading-snug">
+                      {d.title}
+                    </h3>
+                    <div className="text-[11px] text-slate-500 font-medium">
+                      โครงการ: <strong className="text-slate-800">{item.projectTitle}</strong>
+                    </div>
+
+                    <p className="text-xs text-slate-600 line-clamp-2 leading-relaxed">
+                      {d.directionRequest}
+                    </p>
+
+                    {/* Organizer note */}
+                    {d.responseNote && (
+                      <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-200 text-[11px] text-slate-700 space-y-0.5">
+                        <span className="font-bold text-slate-800">คำชี้แจงจากผู้จัดค่าย:</span>
+                        <p className="italic leading-snug">&ldquo;{d.responseNote}&rdquo;</p>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-xs">
+                    <span className="text-slate-400 font-mono text-[10px]">
+                      {d.createdAt}
+                    </span>
+                    <Link
+                      href={`/projects/${item.projectId}`}
+                      className="px-3 py-1.5 rounded-xl bg-blue-50 hover:bg-blue-100 text-blue-700 font-bold transition-colors flex items-center gap-1"
+                    >
+                      <ExternalLink className="w-3 h-3" /> ไปยังหน้าค่าย
+                    </Link>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        ) : (
+          <p className="text-xs text-slate-500 py-4 text-center">ยังไม่มีคำขอทิศทางค่ายที่บันทึกไว้</p>
+        )}
+      </div>
+
+      {/* Held Project Sponsorship Agreements Section */}
+      <div className="clean-card p-6 border border-indigo-200/90 shadow-xs space-y-5 bg-gradient-to-br from-indigo-50/40 via-white to-blue-50/30">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-indigo-100 pb-3">
+          <div>
+            <h2 className="text-base font-bold text-slate-900 flex items-center gap-2">
+              <Handshake className="w-5 h-5 text-indigo-600" />
+              สัญญาร่วมสนับสนุนและข้อตกลงพิเศษเฉพาะโครงการ (Project-Specific Agreements)
+            </h2>
+            <p className="text-xs text-slate-500 mt-0.5">
+              ข้อเสนอสัญญาความร่วมมือพิเศษที่เจ้าของโครงการระบุในใบประกาศ พร้อมสิทธิประโยชน์เฉพาะ
+            </p>
+          </div>
+          <span className="text-xs text-indigo-800 font-bold bg-indigo-100 px-3 py-1 rounded-full border border-indigo-200">
+            {activeAgreements.length} สัญญาในระบบ
+          </span>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {activeAgreements.map((item, idx) => (
+            <div
+              key={idx}
+              className="p-4 sm:p-5 rounded-2xl bg-white border border-indigo-100 shadow-2xs space-y-3 flex flex-col justify-between"
+            >
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded-full border border-indigo-200">
+                    🏛️ {item.university}
+                  </span>
+                  <span className="text-sm font-black text-indigo-700">
+                    {item.agreement.amount} ETH
+                  </span>
+                </div>
+
+                <h3 className="font-bold text-slate-900 text-sm leading-snug">
+                  {item.agreement.title}
+                </h3>
+                <div className="text-[11px] text-slate-500 font-medium">
+                  โครงการ: <strong className="text-slate-800">{item.projectTitle}</strong>
+                </div>
+
+                <p className="text-xs text-slate-600 line-clamp-2 leading-relaxed">
+                  {item.agreement.summary}
+                </p>
+
+                {/* Top Perks */}
+                <div className="space-y-1 pt-1">
+                  {item.agreement.perks.slice(0, 2).map((p, pIdx) => (
+                    <div key={pIdx} className="flex items-center gap-1.5 text-[11px] text-slate-700">
+                      <Check className="w-3 h-3 text-emerald-600 shrink-0" />
+                      <span className="truncate">{p}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-xs">
+                <span className="text-slate-500 text-[11px]">
+                  คุ้มครองด้วย Escrow Smart Contract
+                </span>
+                <Link
+                  href={`/projects/${item.projectId}`}
+                  className="px-3 py-1.5 rounded-xl bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold transition-colors flex items-center gap-1"
+                >
+                  <FileText className="w-3 h-3" /> เปิดดูสัญญาและโครงการ
+                </Link>
+              </div>
+            </div>
+          ))}
         </div>
       </div>
 

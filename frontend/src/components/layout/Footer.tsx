@@ -13,7 +13,7 @@ export function Footer() {
           <div>
             <span className="font-bold text-amber-950">ข้อชี้แจงสำคัญ (Sponsorship & Escrow Disclaimer): </span>
             CampusBoost เป็นแพลตฟอร์มสนับสนุนโปรเจกต์นักศึกษาแลกกับสิทธิ์การโปรโมต/เครดิต (Sponsorship) 
-            <strong> มิใช่การเสนอขายหลักทรัพย์ หุ้น หรือการลงทุนเพื่อหวังผลตอบแทนทางการเงิน</strong> 
+            <strong> สิทธิ์ที่ผู้สนับสนุนได้รับเป็นการโปรโมตแบรนด์และเครดิตตามข้อตกลง ไม่มีการแบ่งผลตอบแทนทางการเงิน</strong>
             เงินสนับสนุนจะถูกเก็บรักษาไว้ใน Escrow Smart Contract และจะถูกทยอยปล่อยเป็นงวดตามหลักฐานความคืบหน้า (Milestones) 
             หากโปรเจกต์ไม่เป็นไปตามข้อตกลง ระบบมีกลไก Dispute คืนเงิน (Refund) ให้แก่ผู้สนับสนุน
           </div>
@@ -66,6 +66,7 @@ export function Footer() {
             </h4>
             <ul className="space-y-2 text-sm text-slate-600">
               <li><Link href="/create" className="hover:text-blue-600 transition-colors">ส่งโครงการนักศึกษา</Link></li>
+              <li><Link href="/subscription" className="hover:text-blue-600 transition-colors">ระดับสมาชิกและการมองเห็น</Link></li>
               <li><Link href="/dashboard/sponsor" className="hover:text-blue-600 transition-colors">Sponsor Dashboard</Link></li>
               <li><Link href="/dashboard/admin" className="hover:text-blue-600 transition-colors">Admin Verification Portal</Link></li>
               <li><span className="text-slate-400 cursor-not-allowed">Smart Contract on GitHub</span></li>

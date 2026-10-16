@@ -1,8 +1,10 @@
 require("@nomicfoundation/hardhat-toolbox");
 require("dotenv").config();
 
-const DEPLOYER_PRIVATE_KEY = process.env.DEPLOYER_PRIVATE_KEY || "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80";
-const accounts = DEPLOYER_PRIVATE_KEY.startsWith("0x") ? [DEPLOYER_PRIVATE_KEY] : [`0x${DEPLOYER_PRIVATE_KEY}`];
+const DEPLOYER_PRIVATE_KEY = process.env.DEPLOYER_PRIVATE_KEY;
+const accounts = DEPLOYER_PRIVATE_KEY
+  ? [DEPLOYER_PRIVATE_KEY.startsWith("0x") ? DEPLOYER_PRIVATE_KEY : `0x${DEPLOYER_PRIVATE_KEY}`]
+  : [];
 
 /** @type import('hardhat/config').HardhatUserConfig */
 module.exports = {

@@ -7,7 +7,9 @@ import { ProjectStatus } from '@/types/campusboost';
 import { 
   ShieldCheck, 
   CheckCircle2, 
-  AlertTriangle
+  AlertTriangle,
+  Handshake,
+  FileText
 } from 'lucide-react';
 
 export default function AdminDashboardPage() {
@@ -18,7 +20,7 @@ export default function AdminDashboardPage() {
   const disputedProjects = projects.filter((p) => p.status === ProjectStatus.Disputed);
 
   // Platform metrics
-  const totalVolume = projects.reduce((acc, p) => acc + p.raisedAmount, 0);
+  const totalVolume = projects.reduce((acc, p) => acc + (p.isCampProject || p.category === 'Camp' ? 0 : p.raisedAmount), 0);
   const platformFeeEarned = +(totalVolume * 0.02).toFixed(4); // 2% fee
 
   return (
@@ -100,18 +102,31 @@ export default function AdminDashboardPage() {
                 key={p.id}
                 className="p-4 rounded-xl bg-slate-50 border border-slate-200 flex flex-col md:flex-row md:items-center justify-between gap-4"
               >
-                <div className="space-y-1 flex-1">
-                  <div className="flex items-center gap-2">
+                <div className="space-y-1.5 flex-1">
+                  <div className="flex items-center gap-2 flex-wrap">
                     <span className="text-[11px] px-2 py-0.5 rounded bg-amber-100 text-amber-800 font-bold border border-amber-200">
                       รอการอนุมัติ
                     </span>
                     <span className="text-xs text-slate-600 font-medium">🏛️ {p.university}</span>
                     <span className="text-xs text-slate-400">• หมวดหมู่: {p.category}</span>
+                    {p.customAgreement && p.customAgreement.enabled && (
+                      <span className="text-[10px] px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-700 font-bold border border-indigo-200 flex items-center gap-1">
+                        <Handshake className="w-3 h-3 text-indigo-600" /> มีสัญญาร่วมสนับสนุน ({p.customAgreement.amount} ETH)
+                      </span>
+                    )}
                   </div>
                   <h3 className="font-bold text-slate-900 text-base">{p.title}</h3>
                   <p className="text-xs text-slate-600 line-clamp-1">{p.tagline}</p>
+
+                  {p.customAgreement && p.customAgreement.enabled && (
+                    <div className="text-[11px] text-indigo-900 bg-indigo-50/70 p-2 rounded-lg border border-indigo-100 flex items-center gap-1.5">
+                      <FileText className="w-3.5 h-3.5 text-indigo-600 shrink-0" />
+                      <span>ข้อเสนอสัญญา: <strong>{p.customAgreement.title}</strong></span>
+                    </div>
+                  )}
+
                   <div className="text-xs text-slate-500 pt-1">
-                    เป้าหมาย: <strong className="text-slate-900 font-bold">{p.goalAmount} ETH</strong> | แบ่ง {p.milestones.length} Milestones
+                     เป้าหมาย: <strong className="text-slate-900 font-bold">{p.isCampProject || p.category === 'Camp' ? `${(p.campGoalTHB ?? Math.round(p.goalAmount * 120000)).toLocaleString('th-TH')} บาท` : `${p.goalAmount} ETH`}</strong> {p.isCampProject || p.category === 'Camp' ? '| คำขอสนับสนุนจำลอง ไม่มีงวดงาน' : '| คุ้มครองด้วย Escrow Smart Contract'}
                   </div>
                 </div>
 
@@ -229,7 +244,7 @@ export default function AdminDashboardPage() {
                   </td>
                   <td className="py-3 px-4 text-slate-500">{p.university}</td>
                   <td className="py-3 px-4">
-                    <span className="font-bold text-slate-900">{p.raisedAmount}</span> / {p.goalAmount} ETH
+                     <span className="font-bold text-slate-900">{p.isCampProject || p.category === 'Camp' ? `${(p.campRaisedTHB ?? Math.round(p.raisedAmount * 120000)).toLocaleString('th-TH')} / ${(p.campGoalTHB ?? Math.round(p.goalAmount * 120000)).toLocaleString('th-TH')} บาท` : `${p.raisedAmount} / ${p.goalAmount} ETH`}</span>
                   </td>
                   <td className="py-3 px-4">
                     {p.status === ProjectStatus.Active && (

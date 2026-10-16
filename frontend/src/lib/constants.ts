@@ -1,4 +1,4 @@
-import { Project, ProjectStatus, MilestoneStatus, SponsorPerk } from '@/types/campusboost';
+import { Project, ProjectStatus, MilestoneStatus, SponsorPerk, DirectiveStatus } from '@/types/campusboost';
 
 export const CONTRACT_ADDRESS = process.env.NEXT_PUBLIC_CAMPUSBOOST_CONTRACT_ADDRESS || "0x5FbDB2315678afecb367f032d93F642f64180aa3";
 export const USDC_CONTRACT_ADDRESS = process.env.NEXT_PUBLIC_USDC_CONTRACT_ADDRESS || "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512";
@@ -62,6 +62,7 @@ export const SPONSOR_PACKAGES: SponsorPerk[] = [
 
 export const CATEGORIES = [
   { id: 'All', name: 'ทั้งหมด', icon: 'Sparkles' },
+  { id: 'Camp', name: 'ค่ายและกิจกรรมเยาวชน (Camp & Hackathon)', icon: 'Tent' },
   { id: 'AI', name: 'ปัญญาประดิษฐ์ (AI)', icon: 'Cpu' },
   { id: 'Environment', name: 'สิ่งแวดล้อม (Green)', icon: 'Leaf' },
   { id: 'Health', name: 'สุขภาพ (HealthTech)', icon: 'Activity' },
@@ -70,6 +71,104 @@ export const CATEGORIES = [
 ];
 
 export const INITIAL_PROJECTS: Project[] = [
+  {
+    id: 'proj-camp-1',
+    onChainId: 5,
+    title: 'TechYouth Camp 2026: ค่ายปั้นเยาวชนสู่นวัตกรเทคโนโลยีเพื่อสังคม (3 วัน 2 คืน)',
+    tagline: 'ค่ายอบรมและ Mini-Hackathon สำหรับเยาวชน 120 คน เปิดรับสปอนเซอร์ร่วมสนับสนุนและเสนอคำขอทิศทาง Track กิจกรรม',
+    description: `ทีมนิสิตนักศึกษาชมรมนวัตกรรมและเทคโนโลยี ร่วมกับเครือข่ายสโมสรนิสิต จัดทำโครงการค่ายอบรมเชิงปฏิบัติการ "TechYouth Camp 2026"
+
+เป้าหมายคือการเปิดพื้นที่การเรียนรู้ฟรีแก่นักเรียนระดับมัธยมปลายและนิสิตปี 1 จำนวน 120 คนจากทั่วประเทศ ได้มาร่วมเรียนรู้ทักษะเทคโนโลยีสมัยใหม่ การเขียนโปรแกรม AI และร่วมแข่งขัน Mini-Hackathon 3 วัน 2 คืน เพื่อสร้างโซลูชันแก้ไขปัญหาสังคมจริง
+
+🎯 **ระบบสนับสนุนค่ายพร้อมคำขอ:**
+องค์กรและผู้สนับสนุนระบุจำนวนบาทที่ต้องการให้พร้อม "คำขอทิศทางการจัดกิจกรรม" (เช่น เพิ่มหัวข้อเวิร์กช็อป กำหนดโจทย์การแข่งขัน หรือสนับสนุนโควตานักเรียนต่างจังหวัด) ทีมผู้จัดพิจารณาคำขอและตอบรับได้ โดยรายการนี้เป็นข้อมูลจำลอง ยังไม่มีการชำระเงินจริง`,
+    category: 'Camp',
+    ownerAddress: '0x70997970C51812dc3A010C7d01b50e0d17dc79C8',
+    ownerName: 'กิตติคุณ & ชมรมนวัตกรรมเยาวชน TechYouth',
+    university: 'จุฬาลงกรณ์มหาวิทยาลัย & ม.เกษตรศาสตร์',
+    coverImage: 'https://images.unsplash.com/photo-1531482615713-2afd69097998?auto=format&fit=crop&w=1200&q=80',
+    goalAmount: 1.2,
+    raisedAmount: 0.75,
+    campGoalTHB: 144000,
+    campRaisedTHB: 90000,
+    deadline: '2026-11-20',
+    status: ProjectStatus.Active,
+    sponsorsCount: 8,
+    featured: true,
+    isCampProject: true,
+    campDetails: {
+      targetAudience: 'นักเรียนมัธยมปลายและนิสิตปี 1 จำนวน 120 คน (มีโควตานักเรียนต่างจังหวัด)',
+      duration: '3 วัน 2 คืน (15-17 พฤศจิกายน 2026)',
+      location: 'อาคารวิศวฯ 100 ปี จุฬาลงกรณ์มหาวิทยาลัย',
+      openForDirectives: true,
+    },
+    campDirectives: [
+      {
+        id: 'dir-1',
+        sponsorAddress: '0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC',
+        sponsorName: 'SCB 10X Ventures',
+        sponsorAvatar: '🏢',
+        amount: 0.45,
+        amountTHB: 54000,
+        title: 'ขอเพิ่ม Track: AI & FinTech for Sustainable Community และช่วง Pitching มอบรางวัล',
+        directionRequest: 'ขอให้ทีมงานจัดให้มี Track การแข่งขัน Mini-Hackathon และ Hands-on Workshop เจาะลึกเรื่อง AI & Financial Literacy ในวันที่ 2 ของค่าย (เวลา 13:00 - 17:00 น.) พร้อมเปิดช่วง Pitching และมอบเงินรางวัลในนามแบรนด์ SCB 10X',
+        expectedOutcomes: 'เยาวชน 40 คนได้ฝึกสร้าง Prototype แอป AI แก้ปัญหาการเงินชุมชน และได้รับคำแนะนำจากผู้เชี่ยวชาญด้าน Tech Startup',
+        sponsorPerksOffered: 'ส่ง Senior AI Engineer & Product Manager มาร่วมเป็นวิทยากรและ Mentor ตลอดทั้งวัน + เสื้อค่ายและของที่ระลึกพิเศษ 120 ชุด',
+        status: DirectiveStatus.Accepted,
+        createdAt: '2026-10-12 10:30',
+        reviewedAt: '2026-10-13 14:00',
+        responseNote: 'ทีมผู้จัดค่ายยินดีตอบรับคำขอนี้เป็นอย่างยิ่ง โดยได้บรรจุ Track นี้เข้าสู่กำหนดการวันที่ 2 และจัดเตรียมโค้ชดูแลน้องๆ เรียบร้อยแล้วครับ ขอบพระคุณสำหรับการสนับสนุนครับ!',
+        txHash: '0x9a8b7...11cd',
+      },
+      {
+        id: 'dir-2',
+        sponsorAddress: '0x90F79bf6EB2c4f870365E785982E1f101E93b906',
+        sponsorName: 'GreenTech Solutions & Community',
+        sponsorAvatar: '🚀',
+        amount: 0.3,
+        amountTHB: 36000,
+        title: 'ขอเพิ่ม Track: Green IoT & Hardware Sensor Kit และโควตานักเรียนต่างจังหวัด 20 คน',
+        directionRequest: 'ต้องการให้มีช่วง Hands-on Workshop ต่อยอดบอร์ด Microcontroller และเซนเซอร์วัดค่าฝุ่น PM2.5 / คุณภาพน้ำ พร้อมสนับสนุนโควตาที่พักและค่าเดินทางแก่นักเรียนจากโรงเรียนต่างจังหวัด 20 คน',
+        expectedOutcomes: 'น้องๆ ได้ทดลองต่อวงจรเซนเซอร์จริง และนำชิ้นงานต้นแบบกลับไปติดตั้งวัดผลต่อยอดที่โรงเรียนตนเอง',
+        sponsorPerksOffered: 'จัดเตรียมชุดบอร์ด ESP32 และเซนเซอร์ 25 ชุด สนับสนุนฟรีตลอดค่าย',
+        status: DirectiveStatus.Pending,
+        createdAt: '2026-10-14 16:45',
+        txHash: '0x5e2c1...89ff',
+      },
+    ],
+    milestones: [],
+    backersList: [
+      {
+        address: '0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC',
+        amount: 0.45,
+        amountTHB: 54000,
+        packageId: 4,
+        tierName: 'Directive Sponsor (คำขอทิศทาง)',
+        timestamp: '2026-10-12 10:30',
+        txHash: '0x9a8b7...11cd',
+        isDirective: true,
+        directiveTitle: 'ขอเพิ่ม Track: AI & FinTech for Sustainable Community',
+      },
+      {
+        address: '0x2546BcD3c84621e976D8185a91A922aE77ECEc30',
+        amount: 0.2,
+        amountTHB: 24000,
+        packageId: 3,
+        tierName: 'Sponsor',
+        timestamp: '2026-10-13 11:20',
+        txHash: '0x1a2b3...4455',
+      },
+      {
+        address: '0x15d34AAf54267DB7D7c367839AAf71A00a2C6A65',
+        amount: 0.1,
+        amountTHB: 12000,
+        packageId: 2,
+        tierName: 'Booster',
+        timestamp: '2026-10-14 09:40',
+        txHash: '0x77889...aabb',
+      },
+    ],
+  },
   {
     id: 'proj-1',
     onChainId: 1,
@@ -89,6 +188,37 @@ export const INITIAL_PROJECTS: Project[] = [
     status: ProjectStatus.Active,
     sponsorsCount: 12,
     featured: true,
+    customAgreement: {
+      enabled: true,
+      title: 'สัญญาร่วมสนับสนุนเพื่อการพัฒนาระบบค้ำประกันหอพักและสิทธิ์ Exclusive Strategic Partner',
+      amount: 0.25,
+      summary: 'ข้อเสนอพิเศษจากทีมนักศึกษา DevChula ในใบประกาศระดมทุน สำหรับผู้สนับสนุนที่ต้องการเป็น Strategic Partner ร่วมนำระบบ Smart Contract ไปเชื่อมต่อกับหอพักเครือข่าย พร้อมสิทธิ์ทดสอบระบบ และบันทึกเครดิต Co-Founding Partner ถาวร',
+      perks: [
+        'สิทธิ์เชื่อมต่อ CampusRent Smart Contract Gateway สำหรับหอพักในสังกัดฟรี 1 ปีเต็ม',
+        'บันทึกชื่อและตราประทับเกียรติยศ Co-Founding Partner ถาวรบนบล็อกเชน (On-chain Metadata)',
+        'สิทธิ์เข้าทดสอบระบบ Close-Beta พร้อมร่วมประชุม Product Roadmap ประจำไตรมาสกับทีมนักศึกษา',
+        'พื้นที่แสดงโลโก้และบูธประชาสัมพันธ์ในกิจกรรม Onboarding นักศึกษา 500 คนแรกของจุฬาฯ',
+        'รับเอกสารสรุปผลวิจัยพฤติกรรมผู้เช่าหอพักและรายงานทางเทคนิคฉบับสมบูรณ์ (Tech Whitepaper)'
+      ],
+      contractTerms: `ข้อตกลงสนับสนุนเฉพาะโครงการ (Project Sponsorship & Strategic Partnership Agreement)
+ทำขึ้นระหว่าง: ทีมพัฒนา CampusRent (ผู้เสนอโครงการ) และ ผู้สนับสนุนผู้ลงนาม (Strategic Partner)
+
+ข้อ 1. วัตถุประสงค์แห่งสัญญา:
+ผู้สนับสนุนตกลงมอบเงินทุนสนับสนุนจำนวน 0.25 ETH เพื่อร่วมสนับสนุนการพัฒนาต้นแบบและระบบ Smart Contract Escrow สำหรับการเช่าหอพักนักศึกษา โดยเงินทุนจะถูกนำเข้าสู่ระบบ Escrow Contract ของแพลตฟอร์ม CampusBoost และจะทยอยเบิกจ่ายตามงวดงานจริง (Milestones) 3 งวดที่กำหนดไว้ในใบประกาศ
+
+ข้อ 2. สิทธิประโยชน์และการตอบแทนของผู้สนับสนุน:
+(1) สิทธิ์ในการนำซอฟต์แวร์และ Smart Contract Gateway ไปประยุกต์ใช้กับกิจการหอพักหรือธุรกิจของผู้สนับสนุนโดยไม่มีค่าธรรมเนียมใบอนุญาตเป็นเวลา 1 ปี
+(2) สิทธิ์ในการได้รับเครดิตถาวรในฐานะ "Co-Founding Innovation Partner" ใน Metadata ของระบบและสื่อประชาสัมพันธ์ทุกช่องทาง
+(3) สิทธิ์ในการร่วมเสนอความคิดเห็นและร่วมทดสอบระบบก่อนเผยแพร่สู่สาธารณะ
+
+ข้อ 3. การคุ้มครองเงินทุนผ่าน Smart Contract Escrow:
+เงินสนับสนุนจะได้รับการคุ้มครองผ่าน Escrow Smart Contract บนบล็อกเชน จะไม่มีการโอนเข้ากระเป๋าส่วนตัวของนักศึกษาในทันที แต่จะปล่อยเป็นงวดตามหลักฐานความคืบหน้าที่ส่งมอบ หากนักศึกษาไม่สามารถส่งมอบงานได้ตามสัญญา ผู้สนับสนุนมีสิทธิ์ใช้กลไก Dispute & Refund เพื่อรับเงินคืนตามสัดส่วน
+
+ข้อ 4. การรับทราบเงื่อนไข:
+สัญญาฉบับนี้เป็นการร่วมสนับสนุนเพื่อสิทธิประโยชน์ทางนวัตกรรมและพันธมิตรเชิงกลยุทธ์ตามเงื่อนไขที่เจ้าของโปรเจกต์กำหนดในใบประกาศ ไม่มีการแบ่งผลตอบแทนทางการเงิน`,
+      quota: 3,
+      claimedCount: 1,
+    },
     milestones: [
       {
         id: 'm1',
@@ -125,6 +255,16 @@ export const INITIAL_PROJECTS: Project[] = [
       },
     ],
     backersList: [
+      {
+        address: '0x2546BcD3c84621e976D8185a91A922aE77ECEc30',
+        amount: 0.25,
+        packageId: 99,
+        tierName: 'สัญญาร่วมสนับสนุน: Exclusive Strategic Partner',
+        timestamp: '2026-10-14 11:05',
+        txHash: '0x3d9a1...55bc',
+        isCustomAgreement: true,
+        agreementTitle: 'สัญญาร่วมสนับสนุนเพื่อการพัฒนาระบบค้ำประกันหอพักและสิทธิ์ Exclusive Strategic Partner',
+      },
       {
         address: '0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC',
         amount: 0.5,
@@ -170,6 +310,23 @@ export const INITIAL_PROJECTS: Project[] = [
     status: ProjectStatus.Active,
     sponsorsCount: 18,
     featured: true,
+    customAgreement: {
+      enabled: true,
+      title: 'สัญญาร่วมสนับสนุนวิจัยและสิทธิ์นำร่องฮาร์ดแวร์ EcoSort AI Smart Bin',
+      amount: 0.4,
+      summary: 'ข้อเสนอสัญญาร่วมสนับสนุนจาก GreenKU Lab ในใบประกาศ เพื่อสนับสนุนการผลิตถังขยะอัจฉริยะ 3 จุดแรก พร้อมสิทธิ์รับมอบเครื่องต้นแบบ 1 ชุด และสิทธิ์การเข้าถึง Dataset ขยะ AI',
+      perks: [
+        'รับมอบถังขยะ EcoSort Smart Bin รุ่นต้นแบบ 1 ชุด นำไปติดตั้งใช้งานในองค์กร',
+        'สิทธิ์เข้าถึงชุดข้อมูลภาพขยะ 10,000 ภาพ และโมเดล Edge AI สำหรับต่อยอดภายใน',
+        'หนังสือรับรองการสนับสนุน ESG & Carbon Offset จากคณะสิ่งแวดล้อม',
+        'ติดป้ายสปอนเซอร์ผู้ร่วมสนับสนุนวิจัยขนาดใหญ่บนตัวถังขยะทุกจุดติดตั้ง'
+      ],
+      contractTerms: `ข้อตกลงสนับสนุนการวิจัยเทคโนโลยี EcoSort (Project Sponsorship Agreement)
+คู่สัญญา: GreenKU Lab (ผู้พัฒนา) และ ผู้สนับสนุนผู้ลงนาม
+เงินทุนสนับสนุน 0.4 ETH จะถูกควบคุมด้วยระบบ Milestone Escrow ของแพลตฟอร์ม CampusBoost และจะเบิกจ่ายเมื่อผ่านการตรวจสอบโมเดล AI และการติดตั้งจริงตามเงื่อนไข`,
+      quota: 2,
+      claimedCount: 0,
+    },
     milestones: [
       {
         id: 'm2-1',
@@ -222,6 +379,23 @@ export const INITIAL_PROJECTS: Project[] = [
     deadline: '2026-11-20',
     status: ProjectStatus.Active,
     sponsorsCount: 8,
+    customAgreement: {
+      enabled: true,
+      title: 'สัญญาร่วมสนับสนุนเพื่อสังคมและสิทธิ์นวัตกรรม SignBridge Assistive Glove',
+      amount: 0.35,
+      summary: 'ข้อเสนอสัญญาจาก KMITL Assistive Tech ในใบประกาศ เพื่อสนับสนุนการผลิตถุงมือต้นแบบ พร้อมสิทธิ์นำระบบไปใช้ในศูนย์การเรียนรู้ผู้พิการและสลักชื่อแบรนด์ถาวร',
+      perks: [
+        'รับมอบถุงมือ SignBridge Prototype รุ่นแรกพร้อมกล่องควบคุม 1 ชุด',
+        'สิทธิ์ใช้งานแอปพลิเคชันแปลภาษามือ Real-time API ตลอดชีพ',
+        'สลักชื่อองค์กรผู้ร่วมสนับสนุนบนบอร์ด PCB และสายรัดถุงมือ',
+        'สิทธิ์นำผลงานไปจัดแสดงในงานนิทรรศการ CSR ขององค์กร'
+      ],
+      contractTerms: `ข้อตกลงสนับสนุนการพัฒนานวัตกรรม SignBridge (Sponsorship & Social Impact Agreement)
+คู่สัญญา: ทีมวิจัย KMITL Assistive Tech และ ผู้สนับสนุนผู้ลงนาม
+เงินทุนสนับสนุนจำนวน 0.35 ETH ถูกคุ้มครองใน Escrow Smart Contract และจะถูกปล่อยตามผลงานการทดสอบแผงวงจรและแอปพลิเคชันมือถือ`,
+      quota: 2,
+      claimedCount: 0,
+    },
     milestones: [
       {
         id: 'm3-1',
@@ -262,6 +436,22 @@ export const INITIAL_PROJECTS: Project[] = [
     deadline: '2026-12-01',
     status: ProjectStatus.Active,
     sponsorsCount: 15,
+    customAgreement: {
+      enabled: true,
+      title: 'สัญญาร่วมสนับสนุนเพื่อการศึกษาและสิทธิ์ติดตั้งระบบโรงเรียนนำร่อง',
+      amount: 0.2,
+      summary: 'ข้อเสนอจาก EduTech Gang ในใบประกาศ มอบสิทธิ์การเป็นพันธมิตรโรงเรียนนำร่อง สามารถนำระบบคลังข้อสอบและ Adaptive AI ไปใช้งานในโรงเรียนที่ท่านอุปถัมภ์ฟรีตลอดไป',
+      perks: [
+        'สิทธิ์ License ใช้งาน EduPrompt ระบบเต็มสำหรับโรงเรียนอุปถัมภ์ 3 แห่งฟรีตลอดไป',
+        'ตราประทับ Educational Excellence Partner ในข้อสอบและหน้าแรกของระบบ',
+        'แดชบอร์ดสรุปสถิติคะแนนสอบและรายงานผลสัมฤทธิ์ทางการศึกษา'
+      ],
+      contractTerms: `สัญญาร่วมสนับสนุนเพื่อการศึกษา EduPrompt (Education Sponsorship Agreement)
+คู่สัญญา: คณะทำงาน EduTech Gang และ ผู้สนับสนุนผู้ลงนาม
+เงินสนับสนุน 0.2 ETH บริหารผ่าน Escrow Smart Contract ตามงวดงานคลังข้อสอบและการทดสอบโรงเรียนนำร่อง`,
+      quota: 5,
+      claimedCount: 2,
+    },
     milestones: [
       {
         id: 'm4-1',

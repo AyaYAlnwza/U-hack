@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Suspense } from "react";
 import "./globals.css";
 import { Web3Provider } from "@/context/Web3Context";
+import { ProfileProvider } from "@/context/ProfileContext";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 
@@ -20,15 +21,17 @@ export default function RootLayout({
     <html lang="th">
       <body className="min-h-screen bg-slate-50 text-slate-800 antialiased flex flex-col selection:bg-blue-600 selection:text-white">
         <Web3Provider>
-          <Suspense fallback={<div className="h-16 border-b border-slate-200 bg-white" />}>
-            <Navbar />
-          </Suspense>
-          <main className="flex-1">
-            <Suspense fallback={<div className="p-8 text-center text-sm text-slate-500">กำลังโหลดข้อมูล...</div>}>
-              {children}
+          <ProfileProvider>
+            <Suspense fallback={<div className="h-16 border-b border-slate-200 bg-white" />}>
+              <Navbar />
             </Suspense>
-          </main>
-          <Footer />
+            <main className="flex-1">
+              <Suspense fallback={<div className="p-8 text-center text-sm text-slate-500">กำลังโหลดข้อมูล...</div>}>
+                {children}
+              </Suspense>
+            </main>
+            <Footer />
+          </ProfileProvider>
         </Web3Provider>
       </body>
     </html>

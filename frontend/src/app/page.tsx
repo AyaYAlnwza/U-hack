@@ -3,25 +3,28 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { useWeb3 } from '@/context/Web3Context';
-import { CATEGORIES, SPONSOR_PACKAGES } from '@/lib/constants';
-import { ProjectStatus, MilestoneStatus } from '@/types/campusboost';
+import { useProfile } from '@/context/ProfileContext';
+import { CATEGORIES } from '@/lib/constants';
+import { ProjectStatus } from '@/types/campusboost';
 import { 
   Rocket, 
   ShieldCheck, 
   Sparkles, 
   Users, 
   ArrowRight, 
-  CheckCircle2, 
-  TrendingUp, 
-  Lock,
   Cpu,
   Leaf,
   Activity,
-  GraduationCap
+  GraduationCap,
+  Handshake,
+  FileText,
+  Check,
+  Tent
 } from 'lucide-react';
 
 export default function HomePage() {
   const { projects } = useWeb3();
+  const { profileId, subscriptionLevel } = useProfile();
   const [selectedCategory, setSelectedCategory] = useState<string>('All');
   const [searchQuery, setSearchQuery] = useState<string>('');
 
@@ -29,6 +32,7 @@ export default function HomePage() {
   const getCategoryIcon = (cat: string) => {
     switch (cat) {
       case 'AI': return <Cpu className="w-4 h-4" />;
+      case 'Camp': return <Tent className="w-4 h-4" />;
       case 'Environment': return <Leaf className="w-4 h-4" />;
       case 'Health': return <Activity className="w-4 h-4" />;
       case 'Education': return <GraduationCap className="w-4 h-4" />;
@@ -38,107 +42,57 @@ export default function HomePage() {
 
   // Filter projects
   const activeProjects = projects.filter((p) => p.status === ProjectStatus.Active || p.status === ProjectStatus.Completed);
+  const isBoostedProject = (project: (typeof projects)[number]) => Boolean(profileId && subscriptionLevel > 0 && project.creatorProfileId === profileId);
   const filteredProjects = activeProjects.filter((p) => {
     const matchCat = selectedCategory === 'All' || p.category === selectedCategory;
     const matchSearch = p.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
                         p.tagline.toLowerCase().includes(searchQuery.toLowerCase());
     return matchCat && matchSearch;
-  });
+  }).sort((a, b) => Number(isBoostedProject(b)) - Number(isBoostedProject(a)));
 
   // Calculate platform stats
-  const totalRaised = projects.reduce((acc, p) => acc + p.raisedAmount, 0);
+  const totalRaised = projects.reduce((acc, p) => acc + (p.isCampProject || p.category === 'Camp' ? 0 : p.raisedAmount), 0);
   const totalSponsors = projects.reduce((acc, p) => acc + p.sponsorsCount, 0);
 
   return (
     <div className="space-y-16 pb-20">
-      
-      {/* 1. Hero Section (Clean White & Blue, 60-20-20) */}
-      <section className="relative pt-12 md:pt-20 px-4 lg:px-8 overflow-hidden bg-gradient-to-b from-blue-50/70 via-white to-slate-50 border-b border-slate-200/60 pb-16">
-        
-        {/* Soft background ambient glow */}
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[350px] bg-blue-400/10 rounded-full blur-[120px] -z-10 pointer-events-none" />
-
-        <div className="max-w-5xl mx-auto text-center space-y-6">
-          
-          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-blue-100/70 border border-blue-200 text-blue-700 text-xs font-semibold">
-            <Sparkles className="w-3.5 h-3.5 text-blue-600 animate-pulse" />
-            <span>นวัตกรรมนักศึกษาที่โปร่งใสที่สุดบน Web3 Smart Contract</span>
+      <section className="border-b border-blue-100 bg-gradient-to-b from-blue-50/70 to-white px-4 py-14 sm:py-16 lg:px-8">
+        <div className="mx-auto max-w-6xl">
+          <div className="mx-auto max-w-3xl text-center">
+            <span className="inline-flex rounded-full border border-blue-200 bg-white px-3 py-1 text-xs font-bold text-blue-700">CampusBoost</span>
+            <h1 className="mt-5 text-3xl font-black tracking-tight text-slate-900 sm:text-5xl">ให้โปรเจกต์ของคุณไปต่อ</h1>
+            <p className="mx-auto mt-4 max-w-2xl text-sm leading-7 text-slate-600 sm:text-base">
+              เลือกลงประกาศขายผลงานที่พร้อมส่งต่อ หรือขอรับการสนับสนุนเพื่อพัฒนาโปรเจกต์และค่ายตามแผนงาน
+            </p>
           </div>
 
-          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black tracking-tight text-slate-900 leading-tight">
-            ปลดล็อกทุนสร้างสรรค์ <br />
-            <span className="gradient-text">ด้วย Escrow ตามผลงานจริง</span>
-          </h1>
+          <div className="mt-9 grid gap-5 md:grid-cols-2">
+            <article className="flex flex-col rounded-2xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
+              <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-blue-50 text-blue-600"><Rocket size={22} /></div>
+              <h2 className="mt-5 text-xl font-bold text-slate-900">ลงขายโปรเจกต์</h2>
+              <p className="mt-3 flex-1 text-sm leading-7 text-slate-600">
+                แสดงข้อมูลเบื้องต้น ราคา และช่องทางติดต่อ ให้ผู้สนใจสอบถามรายละเอียดและซอร์สโค้ดกับผู้ขายโดยตรง
+              </p>
+              <div className="mt-6 flex flex-wrap items-center gap-4">
+                <Link href="/sell" className="inline-flex items-center gap-2 rounded-xl bg-blue-600 px-5 py-3 text-sm font-bold text-white hover:bg-blue-700">ลงประกาศขาย <ArrowRight size={16} /></Link>
+                <Link href="/marketplace" className="text-sm font-bold text-blue-700 hover:underline">ดูโปรเจกต์ที่เปิดขาย</Link>
+              </div>
+            </article>
 
-          <p className="text-slate-600 text-base sm:text-lg max-w-2xl mx-auto leading-relaxed">
-            CampusBoost ช่วยให้นักศึกษานำเสนอไอเดียนวัตกรรม และรับการสนับสนุนจากผู้ใช้และแบรนด์ 
-            โดยเงินทุนถูกเก็บใน Smart Contract และทยอยปล่อยเป็นงวดตามหลักฐานความคืบหน้าจริง
-          </p>
-
-          {/* CTA Buttons */}
-          <div className="flex flex-wrap items-center justify-center gap-4 pt-2">
-            <Link
-              href="/create"
-              className="px-6 py-3.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm flex items-center gap-2 shadow-lg shadow-blue-600/25 hover:shadow-blue-600/35 transition-all transform hover:-translate-y-0.5"
-            >
-              <Rocket className="w-4 h-4" />
-              สร้างโปรเจกต์นักศึกษา
-            </Link>
-            <a
-              href="#explore-projects"
-              className="px-6 py-3.5 rounded-xl bg-white hover:bg-slate-50 text-slate-700 font-bold text-sm border border-slate-300 hover:border-slate-400 shadow-xs transition-all flex items-center gap-2"
-            >
-              สำรวจและสนับสนุน
-              <ArrowRight className="w-4 h-4 text-slate-400" />
-            </a>
+            <article className="flex flex-col rounded-2xl border border-blue-200 bg-white p-6 shadow-sm sm:p-8">
+              <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-blue-50 text-blue-600"><Handshake size={22} /></div>
+              <h2 className="mt-5 text-xl font-bold text-slate-900">ขอรับการสนับสนุน</h2>
+              <p className="mt-3 flex-1 text-sm leading-7 text-slate-600">
+                เลือกขอสนับสนุนโปรเจกต์ครั้งเดียว หรือขอสนับสนุนค่ายเป็นบาทพร้อมคำขอถึงผู้จัด
+              </p>
+              <div className="mt-6 flex flex-wrap items-center gap-4">
+                <Link href="/create" className="inline-flex items-center gap-2 rounded-xl bg-blue-600 px-5 py-3 text-sm font-bold text-white hover:bg-blue-700">เลือกประเภทคำขอ <ArrowRight size={16} /></Link>
+                <a href="#explore-projects" className="text-sm font-bold text-blue-700 hover:underline">ดูโครงการที่เปิดรับ</a>
+              </div>
+            </article>
           </div>
-
-          {/* Key Trust Badges */}
-          <div className="pt-8 grid grid-cols-2 md:grid-cols-4 gap-4 max-w-3xl mx-auto text-left">
-            <div className="p-3.5 rounded-2xl bg-white border border-slate-200/80 shadow-xs flex items-center gap-3">
-              <div className="p-2 rounded-xl bg-blue-50 text-blue-600">
-                <Lock className="w-5 h-5" />
-              </div>
-              <div>
-                <div className="text-[11px] text-slate-500 font-medium">การันตีความปลอดภัย</div>
-                <div className="text-sm font-bold text-slate-900">Escrow 100%</div>
-              </div>
-            </div>
-
-            <div className="p-3.5 rounded-2xl bg-white border border-slate-200/80 shadow-xs flex items-center gap-3">
-              <div className="p-2 rounded-xl bg-emerald-50 text-emerald-600">
-                <CheckCircle2 className="w-5 h-5" />
-              </div>
-              <div>
-                <div className="text-[11px] text-slate-500 font-medium">ปล่อยเงินเป็นงวด</div>
-                <div className="text-sm font-bold text-slate-900">Milestone Proof</div>
-              </div>
-            </div>
-
-            <div className="p-3.5 rounded-2xl bg-white border border-slate-200/80 shadow-xs flex items-center gap-3">
-              <div className="p-2 rounded-xl bg-indigo-50 text-indigo-600">
-                <TrendingUp className="w-5 h-5" />
-              </div>
-              <div>
-                <div className="text-[11px] text-slate-500 font-medium">สิทธิประโยชน์แบรนด์</div>
-                <div className="text-sm font-bold text-slate-900">Brand Visibility</div>
-              </div>
-            </div>
-
-            <div className="p-3.5 rounded-2xl bg-white border border-slate-200/80 shadow-xs flex items-center gap-3">
-              <div className="p-2 rounded-xl bg-amber-50 text-amber-600">
-                <ShieldCheck className="w-5 h-5" />
-              </div>
-              <div>
-                <div className="text-[11px] text-slate-500 font-medium">ปกป้องผู้สนับสนุน</div>
-                <div className="text-sm font-bold text-slate-900">Dispute & Refund</div>
-              </div>
-            </div>
-          </div>
-
         </div>
       </section>
-
       {/* 2. Platform Real-time Metrics Banner */}
       <section className="px-4 lg:px-8 max-w-7xl mx-auto">
         <div className="bg-white rounded-2xl p-6 sm:p-8 grid grid-cols-2 md:grid-cols-4 gap-6 border border-slate-200 shadow-xs">
@@ -147,7 +101,7 @@ export default function HomePage() {
             <div className="text-2xl sm:text-3xl font-black text-slate-900 mt-1">
               {totalRaised.toFixed(2)} <span className="text-blue-600 text-lg font-bold">ETH</span>
             </div>
-            <div className="text-[11px] text-slate-500 mt-0.5">≈ {(totalRaised * 120000).toLocaleString()} THB</div>
+            <div className="text-[11px] text-slate-500 mt-0.5">≈ {(totalRaised * 120000).toLocaleString('en-US')} THB</div>
           </div>
 
           <div>
@@ -167,7 +121,7 @@ export default function HomePage() {
           </div>
 
           <div>
-            <div className="text-xs text-slate-500 uppercase tracking-wider font-bold">Milestone สำเร็จแล้ว</div>
+            <div className="text-xs text-slate-500 uppercase tracking-wider font-bold">ส่งมอบสำเร็จ</div>
             <div className="text-2xl sm:text-3xl font-black text-blue-600 mt-1">
               87% <span className="text-sm font-semibold text-slate-500">Success Rate</span>
             </div>
@@ -190,6 +144,7 @@ export default function HomePage() {
             <p className="text-sm text-slate-600 mt-1">
               เลือกสนับสนุนโปรเจกต์ที่คุณเชื่อมั่น และร่วมเป็นผู้ร่วมสร้างผลงานกับนักศึกษา
             </p>
+            <Link href="/subscription" className="mt-2 inline-flex items-center gap-1 text-xs font-bold text-blue-600 hover:underline">เพิ่มการมองเห็นโปรเจกต์ <ArrowRight size={13} /></Link>
           </div>
 
           {/* Search Box */}
@@ -225,13 +180,16 @@ export default function HomePage() {
         {/* Project Cards Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredProjects.map((project) => {
-            const percent = Math.min(100, Math.round((project.raisedAmount / project.goalAmount) * 100));
-            const releasedMilestones = project.milestones.filter(m => m.status === MilestoneStatus.Released).length;
+            const isCamp = Boolean(project.isCampProject || project.category === 'Camp');
+            const goal = isCamp ? (project.campGoalTHB ?? Math.round(project.goalAmount * 120000)) : project.goalAmount;
+            const raised = isCamp ? (project.campRaisedTHB ?? Math.round(project.raisedAmount * 120000)) : project.raisedAmount;
+            const percent = Math.min(100, Math.round((raised / (goal || 1)) * 100));
+            const boosted = isBoostedProject(project);
 
             return (
               <div
                 key={project.id}
-                className="clean-card rounded-2xl overflow-hidden flex flex-col group border border-slate-200 hover:border-blue-400"
+                className={`clean-card rounded-2xl overflow-hidden flex flex-col group border hover:border-blue-400 ${boosted ? 'border-blue-400 ring-1 ring-blue-100' : 'border-slate-200'}`}
               >
                 {/* Cover Image Container */}
                 <div className="relative h-48 w-full overflow-hidden bg-slate-100">
@@ -246,6 +204,7 @@ export default function HomePage() {
                   <span className="absolute top-3 left-3 px-2.5 py-1 rounded-lg text-xs font-bold bg-white/90 backdrop-blur-md text-blue-700 border border-white/40 shadow-xs">
                     {project.category}
                   </span>
+                  {boosted && <span className="absolute right-3 top-3 rounded-lg bg-blue-600 px-2.5 py-1 text-xs font-bold text-white">โปรโมต</span>}
 
                   {/* University */}
                   <span className="absolute bottom-3 left-3 text-xs text-white font-semibold drop-shadow">
@@ -264,15 +223,34 @@ export default function HomePage() {
                     </p>
                   </div>
 
-                  {/* Milestone Progress Info */}
-                  <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200/80 space-y-2">
-                    <div className="flex items-center justify-between text-xs">
-                      <span className="text-slate-500 font-medium">Milestone เบิกจ่ายแล้ว:</span>
-                      <span className="font-bold text-emerald-600">
-                        {releasedMilestones} จาก {project.milestones.length} งวด
+                  {/* Camp Project Directive Badge */}
+                  {(project.isCampProject || project.category === 'Camp') && (
+                    <div className="flex items-center justify-between gap-1.5 text-[11px] text-blue-700 font-bold bg-blue-50/90 px-2.5 py-1.5 rounded-xl border border-blue-200">
+                      <div className="flex items-center gap-1.5 truncate">
+                        <Tent className="w-3.5 h-3.5 text-blue-600 shrink-0" />
+                        <span className="truncate">ค่ายกิจกรรม: เสนอคำขอทิศทางได้</span>
+                      </div>
+                      <span className="text-[10px] bg-blue-100 text-blue-800 px-1.5 py-0.5 rounded font-black shrink-0">
+                        {project.campDirectives?.length || 0} คำขอ
                       </span>
                     </div>
+                  )}
 
+                  {/* Project Custom Agreement Badge */}
+                  {project.customAgreement && (
+                    <div className="flex items-center justify-between gap-1.5 text-[11px] text-indigo-700 font-bold bg-indigo-50/80 px-2.5 py-1.5 rounded-xl border border-indigo-200/80">
+                      <div className="flex items-center gap-1.5 truncate">
+                        <Handshake className="w-3.5 h-3.5 text-indigo-600 shrink-0" />
+                        <span className="truncate">สัญญาร่วมสนับสนุน: {project.customAgreement.amount} ETH</span>
+                      </div>
+                      <span className="text-[10px] bg-indigo-100 text-indigo-800 px-1.5 py-0.5 rounded font-black shrink-0">
+                        ครั้งเดียว
+                      </span>
+                    </div>
+                  )}
+
+                  {/* Funding Progress Info */}
+                  <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200/80 space-y-2">
                     {/* Progress Bar */}
                     <div className="w-full h-2 rounded-full bg-slate-200 overflow-hidden">
                       <div
@@ -283,8 +261,8 @@ export default function HomePage() {
 
                     <div className="flex items-center justify-between text-xs pt-0.5">
                       <div>
-                        <span className="font-extrabold text-slate-900">{project.raisedAmount} ETH</span>
-                        <span className="text-slate-500 text-[11px]"> / {project.goalAmount} ETH</span>
+                         <span className="font-extrabold text-slate-900">{raised.toLocaleString('th-TH')} {isCamp ? 'บาท' : 'ETH'}</span>
+                         <span className="text-slate-500 text-[11px]"> / {goal.toLocaleString('th-TH')} {isCamp ? 'บาท' : 'ETH'}</span>
                       </div>
                       <span className="font-black text-blue-600">{percent}%</span>
                     </div>
@@ -297,9 +275,9 @@ export default function HomePage() {
                     </div>
                     <Link
                       href={`/projects/${project.id}`}
-                      className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-blue-50 hover:bg-blue-600 text-blue-700 hover:text-white text-xs font-bold border border-blue-200 hover:border-blue-600 transition-all shadow-2xs"
+                      className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-indigo-50 hover:bg-indigo-600 text-indigo-700 hover:text-white text-xs font-bold border border-indigo-200 hover:border-indigo-600 transition-all shadow-2xs"
                     >
-                      ดูรายละเอียด & สนับสนุน
+                      ดูสัญญา & สนับสนุน
                       <ArrowRight className="w-3.5 h-3.5" />
                     </Link>
                   </div>
@@ -334,9 +312,9 @@ export default function HomePage() {
               <div className="w-10 h-10 rounded-xl bg-blue-600 text-white flex items-center justify-center font-bold text-lg shadow-sm shadow-blue-600/30">
                 1
               </div>
-              <h3 className="font-bold text-slate-900 text-base">สร้างโปรเจกต์ & กำหนด Milestones</h3>
+              <h3 className="font-bold text-slate-900 text-base">สร้างโปรเจกต์ & กำหนดข้อเสนอสัญญา</h3>
               <p className="text-xs text-slate-600 leading-relaxed">
-                ทีมนักศึกษาระบุเป้าหมาย นวัตกรรม และแบ่งงบประมาณออกเป็นงวดงาน (เช่น ออกแบบ, พัฒนา MVP, ทดสอบ) พร้อมเงื่อนไขการส่งมอบหลักฐาน
+                ทีมนักศึกษาระบุเป้าหมาย นวัตกรรม และร่างข้อเสนอสัญญาร่วมสนับสนุน พร้อมระบุผลงานและสิทธิประโยชน์ที่จะส่งมอบ
               </p>
             </div>
 
@@ -344,9 +322,9 @@ export default function HomePage() {
               <div className="w-10 h-10 rounded-xl bg-indigo-600 text-white flex items-center justify-center font-bold text-lg shadow-sm shadow-indigo-600/30">
                 2
               </div>
-              <h3 className="font-bold text-slate-900 text-base">เงินทุนถูกล็อกใน Escrow Smart Contract</h3>
+              <h3 className="font-bold text-slate-900 text-base">ลงนามสัญญา & ล็อกเงินใน Escrow</h3>
               <p className="text-xs text-slate-600 leading-relaxed">
-                Backer และ Sponsor สนับสนุนแพ็กเกจ เงินจะไม่โอนเข้านักศึกษาโดยตรง แต่ถูกล็อกไว้ใน Contract ปลอดภัย ไร้ความเสี่ยง
+                ผู้สนับสนุนลงนามและสนับสนุนตามสัญญาร่วมสนับสนุนของแต่ละโปรเจกต์ เงินจะถูกล็อกไว้ใน Escrow Smart Contract ปลอดภัย โดยมีเงื่อนไขตามสัญญา
               </p>
             </div>
 
@@ -354,9 +332,9 @@ export default function HomePage() {
               <div className="w-10 h-10 rounded-xl bg-emerald-600 text-white flex items-center justify-center font-bold text-lg shadow-sm shadow-emerald-600/30">
                 3
               </div>
-              <h3 className="font-bold text-slate-900 text-base">ปล่อยเงินเมื่อส่งงาน & ผ่านการตรวจรับ</h3>
+              <h3 className="font-bold text-slate-900 text-base">ส่งมอบผลงานตามสัญญา & รับเงินทุน</h3>
               <p className="text-xs text-slate-600 leading-relaxed">
-                นักศึกษาส่งหลักฐาน (GitHub, วิดีโอ, Figma) เมื่อ Sponsor หรือ Admin กดอนุมัติ Smart Contract จะโอนเงินงวดนั้นพร้อมหัก 2% Fee อัตโนมัติ
+                นักศึกษาส่งมอบผลงานตามเงื่อนไขสัญญา เมื่อผ่านการตรวจรับ Smart Contract จะโอนเงินทุนจาก Escrow ให้อย่างโปร่งใส
               </p>
             </div>
 
@@ -365,68 +343,136 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* 5. Sponsorship Tiers Breakdown */}
-      <section className="px-4 lg:px-8 max-w-7xl mx-auto space-y-8">
+      {/* 5. Agreement-Based Sponsorship Model */}
+      <section className="px-4 lg:px-8 max-w-7xl mx-auto space-y-10">
         <div className="text-center max-w-2xl mx-auto space-y-2">
-          <div className="text-xs font-bold text-blue-600 uppercase tracking-wider">
-            Packages & Brand Perks
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-indigo-50 border border-indigo-200 text-indigo-700 text-xs font-bold">
+            <Handshake className="w-3.5 h-3.5 text-indigo-600" />
+            Project Sponsorship Model
           </div>
-          <h2 className="text-2xl sm:text-3xl font-black text-slate-900">
-            ระดับแพ็กเกจการสนับสนุน (Sponsorship Packages)
+          <h2 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
+            การสนับสนุนด้วย &quot;สัญญาร่วมสนับสนุน&quot; ประจำโครงการ
           </h2>
-          <p className="text-sm text-slate-600">
-            เลือกแพ็กเกจที่ตรงกับเป้าหมาย สนับสนุนนักศึกษาพร้อมรับสิทธิ์โปรโมตแบรนด์อย่างคุ้มค่า
+          <p className="text-sm text-slate-600 leading-relaxed">
+            ไม่มีแพ็กเกจสำเร็จรูป ทุกการสนับสนุนดำเนินการผ่านข้อเสนอสัญญาที่เจ้าของโครงการระบุในใบประกาศ สนับสนุนครั้งเดียว และล็อกเงินใน Escrow คุ้มครองความคืบหน้า 100%
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {SPONSOR_PACKAGES.map((pkg) => (
-            <div
-              key={pkg.id}
-              className={`p-6 rounded-2xl clean-card flex flex-col justify-between border ${
-                pkg.popular
-                  ? 'border-blue-500 ring-2 ring-blue-500/10 shadow-lg shadow-blue-500/10'
-                  : 'border-slate-200'
-              }`}
-            >
-              <div className="space-y-4">
-                {pkg.popular && (
-                  <span className="inline-block px-3 py-1 rounded-full text-[10px] font-black uppercase bg-blue-600 text-white shadow-xs">
-                    Most Popular
-                  </span>
-                )}
-                <div>
-                  <h3 className="font-bold text-lg text-slate-900">{pkg.name}</h3>
-                  <div className="text-2xl font-black text-blue-600 mt-1">
-                    {pkg.minAmount} ETH
-                  </div>
-                  <div className="text-[11px] text-slate-500 font-medium">ขั้นต่ำต่อโปรเจกต์</div>
-                </div>
-
-                <p className="text-xs text-slate-600 leading-relaxed border-t border-slate-100 pt-3">
-                  {pkg.description}
-                </p>
-
-                <ul className="space-y-2 text-xs text-slate-600 pt-2">
-                  {pkg.perks.map((perk, i) => (
-                    <li key={i} className="flex items-start gap-2">
-                      <CheckCircle2 className="w-3.5 h-3.5 text-blue-600 shrink-0 mt-0.5" />
-                      <span>{perk}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-
-              <div className="pt-6 mt-4 border-t border-slate-100">
-                <a
-                  href="#explore-projects"
-                  className="w-full block py-2.5 rounded-xl bg-slate-100 hover:bg-blue-600 hover:text-white text-center text-xs font-bold text-slate-700 transition-colors"
-                >
-                  เลือกสนับสนุนแพ็กเกจนี้
-                </a>
-              </div>
+        {/* 4 Core Pillars of Agreement Sponsorship */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
+          <div className="p-5 rounded-2xl bg-white border border-slate-200 shadow-xs space-y-3">
+            <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center font-bold">
+              <FileText className="w-5 h-5" />
             </div>
-          ))}
+            <h3 className="font-bold text-slate-900 text-sm">1. ข้อเสนอกำหนดโดยนักศึกษา</h3>
+            <p className="text-xs text-slate-600 leading-relaxed">
+              ผู้ริเริ่มโครงการเป็นผู้เสนอเงื่อนไข ยอดเงินสนับสนุน และสิ่งที่ส่งมอบในใบประกาศอย่างชัดเจน
+            </p>
+          </div>
+
+          <div className="p-5 rounded-2xl bg-white border border-slate-200 shadow-xs space-y-3">
+            <div className="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center font-bold">
+              <Handshake className="w-5 h-5" />
+            </div>
+            <h3 className="font-bold text-slate-900 text-sm">2. สนับสนุนครั้งเดียวตามสัญญา</h3>
+            <p className="text-xs text-slate-600 leading-relaxed">
+              เป็นพันธมิตรโดยตรงในมูลค่าที่กำหนด ไม่ผูกมัดระยะยาว โอนครั้งเดียวจบสู่ Escrow
+            </p>
+          </div>
+
+          <div className="p-5 rounded-2xl bg-white border border-slate-200 shadow-xs space-y-3">
+            <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold">
+              <ShieldCheck className="w-5 h-5" />
+            </div>
+            <h3 className="font-bold text-slate-900 text-sm">3. ล็อกใน Escrow 100%</h3>
+            <p className="text-xs text-slate-600 leading-relaxed">
+              เงินจะถูกล็อกใน Escrow Smart Contract และจะถูกปล่อยเมื่อส่งมอบงานตามเงื่อนไขข้อตกลงสัญญาที่ระบุไว้
+            </p>
+          </div>
+
+          <div className="p-5 rounded-2xl bg-white border border-slate-200 shadow-xs space-y-3">
+            <div className="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center font-bold">
+              <Sparkles className="w-5 h-5" />
+            </div>
+            <h3 className="font-bold text-slate-900 text-sm">4. สิทธิ์พันธมิตร & Co-Creator</h3>
+            <p className="text-xs text-slate-600 leading-relaxed">
+              ได้รับสิทธิ์ใช้งานเทคโนโลยี โลโก้ในงานสาธิตผลงาน และการบันทึกเกียรติยศถาวรบนบล็อกเชน
+            </p>
+          </div>
+        </div>
+
+        {/* Active Project Agreements Showcase Grid */}
+        <div className="space-y-4 pt-4">
+          <div className="flex items-center justify-between">
+            <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
+              <span>ข้อเสนอสัญญาที่เปิดรับการสนับสนุนในขณะนี้</span>
+              <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-slate-100 text-slate-700">
+                {activeProjects.filter(p => p.customAgreement?.enabled).length} สัญญา
+              </span>
+            </h3>
+            <a href="#explore-projects" className="text-xs font-bold text-blue-600 hover:text-blue-800 flex items-center gap-1">
+              ดูทั้งหมด <ArrowRight className="w-3.5 h-3.5" />
+            </a>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
+            {activeProjects
+              .filter(p => p.customAgreement?.enabled)
+              .map((p) => {
+                const ag = p.customAgreement!;
+                const remaining = ag.quota ? Math.max(0, ag.quota - (ag.claimedCount || 0)) : null;
+
+                return (
+                  <div
+                    key={p.id}
+                    className="p-5 rounded-2xl clean-card border border-indigo-100/90 shadow-2xs hover:border-indigo-300 transition-all flex flex-col justify-between space-y-4 bg-gradient-to-br from-indigo-50/30 via-white to-blue-50/20"
+                  >
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between text-xs">
+                        <span className="font-semibold text-slate-500">🏛️ {p.university}</span>
+                        {remaining !== null && (
+                          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
+                            เหลือ {remaining}/{ag.quota} สิทธิ์
+                          </span>
+                        )}
+                      </div>
+
+                      <div>
+                        <div className="text-[11px] text-slate-500 font-medium truncate">โครงการ: {p.title}</div>
+                        <h4 className="font-bold text-sm text-slate-900 line-clamp-2 mt-0.5 leading-snug">
+                          {ag.title}
+                        </h4>
+                        <div className="text-xl font-black text-indigo-700 mt-2">
+                          {ag.amount} <span className="text-xs font-bold text-slate-500">ETH (ครั้งเดียว)</span>
+                        </div>
+                      </div>
+
+                      <p className="text-xs text-slate-600 line-clamp-2 leading-relaxed border-t border-slate-100 pt-2.5">
+                        {ag.summary}
+                      </p>
+
+                      <ul className="space-y-1.5 text-xs text-slate-600 pt-1">
+                        {ag.perks.slice(0, 2).map((perk, i) => (
+                          <li key={i} className="flex items-start gap-1.5 text-[11px] text-slate-700 leading-tight">
+                            <Check className="w-3.5 h-3.5 text-emerald-600 shrink-0 mt-0.5" />
+                            <span className="line-clamp-1">{perk}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+
+                    <div className="pt-3 border-t border-slate-100">
+                      <Link
+                        href={`/projects/${p.id}`}
+                        className="w-full block py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-center text-xs font-bold shadow-xs transition-colors"
+                      >
+                        อ่านสัญญาและสนับสนุน
+                      </Link>
+                    </div>
+                  </div>
+                );
+              })}
+          </div>
         </div>
       </section>
 

@@ -1,7 +1,7 @@
 'use client';
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { Project, ProjectStatus, MilestoneStatus } from '@/types/campusboost';
+import { Project, ProjectStatus, MilestoneStatus, DirectiveStatus, SponsorCampDirective } from '@/types/campusboost';
 import { INITIAL_PROJECTS, SPONSOR_PACKAGES } from '@/lib/constants';
 import confetti from 'canvas-confetti';
 
@@ -53,20 +53,44 @@ interface Web3ContextType {
   connectWallet: () => Promise<void>;
   disconnectWallet: () => void;
   projects: Project[];
-  supportProject: (projectId: string, packageId: number, customAmount?: number) => Promise<boolean>;
+  supportProject: (
+    projectId: string,
+    packageId: number,
+    customAmount?: number,
+    options?: {
+      isCustomAgreement?: boolean;
+      agreementTitle?: string;
+    }
+  ) => Promise<boolean>;
   submitMilestoneEvidence: (projectId: string, milestoneIndex: number, evidenceURI: string, evidenceTitle: string) => Promise<boolean>;
   approveMilestone: (projectId: string, milestoneIndex: number) => Promise<boolean>;
   releaseMilestoneFunds: (projectId: string, milestoneIndex: number) => Promise<boolean>;
   approveProjectAdmin: (projectId: string) => Promise<boolean>;
   openDispute: (projectId: string, milestoneIndex: number, reason: string) => Promise<boolean>;
   resolveDispute: (projectId: string, milestoneIndex: number, releaseFunds: boolean) => Promise<boolean>;
+  submitCampDirective: (
+    projectId: string,
+    directiveData: {
+      amountTHB: number;
+      title: string;
+      directionRequest: string;
+      expectedOutcomes: string;
+      sponsorPerksOffered?: string;
+    }
+  ) => Promise<boolean>;
+  respondToCampDirective: (
+    projectId: string,
+    directiveId: string,
+    action: 'accept' | 'decline',
+    responseNote?: string
+  ) => Promise<boolean>;
   createNewProject: (newProjectData: Partial<Project>) => Promise<string>;
   resetToDefault: () => void;
 }
 
 const Web3Context = createContext<Web3ContextType | undefined>(undefined);
 
-const STORAGE_KEY = 'campusboost_projects_v1';
+const STORAGE_KEY = 'campusboost_projects_v3';
 
 export function Web3Provider({ children }: { children: React.ReactNode }) {
   const [currentRole, setCurrentRole] = useState<UserRole>('student');
@@ -145,9 +169,21 @@ export function Web3Provider({ children }: { children: React.ReactNode }) {
   };
 
   // Support Project
-  const supportProject = async (projectId: string, packageId: number, customAmount?: number): Promise<boolean> => {
+  const supportProject = async (
+    projectId: string,
+    packageId: number,
+    customAmount?: number,
+    options?: {
+      isCustomAgreement?: boolean;
+      agreementTitle?: string;
+    }
+  ): Promise<boolean> => {
     const pkg = SPONSOR_PACKAGES.find((p) => p.id === packageId);
     const amount = customAmount || pkg?.minAmount || 0.05;
+    const isCustom = options?.isCustomAgreement || packageId === 99;
+    const tierName = isCustom
+      ? (options?.agreementTitle ? `สัญญาร่วมสนับสนุน: ${options.agreementTitle}` : 'สัญญาร่วมสนับสนุนเฉพาะโครงการ')
+      : (pkg?.name || 'Supporter');
 
     const updated = projects.map((p) => {
       if (p.id === projectId) {
@@ -156,14 +192,26 @@ export function Web3Provider({ children }: { children: React.ReactNode }) {
           address: account.address,
           amount,
           packageId,
-          tierName: pkg?.name || 'Supporter',
+          tierName,
           timestamp: new Date().toISOString().replace('T', ' ').slice(0, 16),
           txHash: `0x${Math.random().toString(16).slice(2, 10)}...${Math.random().toString(16).slice(2, 6)}`,
+          isCustomAgreement: isCustom,
+          agreementTitle: options?.agreementTitle || p.customAgreement?.title,
         };
+
+        let updatedAgreement = p.customAgreement;
+        if (isCustom && updatedAgreement) {
+          updatedAgreement = {
+            ...updatedAgreement,
+            claimedCount: (updatedAgreement.claimedCount || 0) + 1,
+          };
+        }
+
         return {
           ...p,
           raisedAmount: newRaised,
           sponsorsCount: p.sponsorsCount + 1,
+          customAgreement: updatedAgreement,
           backersList: [newBacker, ...(p.backersList || [])],
         };
       }
@@ -182,6 +230,7 @@ export function Web3Provider({ children }: { children: React.ReactNode }) {
     evidenceURI: string,
     evidenceTitle: string
   ): Promise<boolean> => {
+    if (projects.find((p) => p.id === projectId)?.isCampProject || projects.find((p) => p.id === projectId)?.category === 'Camp') return false;
     const updated = projects.map((p) => {
       if (p.id === projectId) {
         const updatedMilestones = p.milestones.map((m, idx) => {
@@ -207,6 +256,7 @@ export function Web3Provider({ children }: { children: React.ReactNode }) {
 
   // Approve Milestone
   const approveMilestone = async (projectId: string, milestoneIndex: number): Promise<boolean> => {
+    if (projects.find((p) => p.id === projectId)?.isCampProject || projects.find((p) => p.id === projectId)?.category === 'Camp') return false;
     const updated = projects.map((p) => {
       if (p.id === projectId) {
         const updatedMilestones = p.milestones.map((m, idx) => {
@@ -229,6 +279,8 @@ export function Web3Provider({ children }: { children: React.ReactNode }) {
 
   // Release Milestone Funds
   const releaseMilestoneFunds = async (projectId: string, milestoneIndex: number): Promise<boolean> => {
+    const target = projects.find((p) => p.id === projectId);
+    if (!target || target.isCampProject || target.category === 'Camp' || target.milestones[milestoneIndex]?.status !== MilestoneStatus.Approved) return false;
     const updated = projects.map((p) => {
       if (p.id === projectId) {
         const updatedMilestones = p.milestones.map((m, idx) => {
@@ -303,11 +355,121 @@ export function Web3Provider({ children }: { children: React.ReactNode }) {
     return true;
   };
 
+  // Submit Camp Directive from Sponsor
+  const submitCampDirective = async (
+    projectId: string,
+    directiveData: {
+      amountTHB: number;
+      title: string;
+      directionRequest: string;
+      expectedOutcomes: string;
+      sponsorPerksOffered?: string;
+    }
+  ): Promise<boolean> => {
+    if (!Number.isSafeInteger(directiveData.amountTHB) || directiveData.amountTHB < 1) return false;
+    if (!projects.some((p) => p.id === projectId && (p.isCampProject || p.category === 'Camp') && p.status === ProjectStatus.Active)) return false;
+    const newDirective: SponsorCampDirective = {
+      id: `dir-${Date.now()}`,
+      sponsorAddress: account.address,
+      sponsorName: account.name,
+      sponsorAvatar: account.avatar,
+      amount: 0,
+      amountTHB: directiveData.amountTHB,
+      title: directiveData.title,
+      directionRequest: directiveData.directionRequest,
+      expectedOutcomes: directiveData.expectedOutcomes,
+      sponsorPerksOffered: directiveData.sponsorPerksOffered,
+      status: DirectiveStatus.Pending,
+      createdAt: new Date().toISOString().replace('T', ' ').slice(0, 16),
+    };
+
+    const updated = projects.map((p) => {
+      if (p.id === projectId) {
+        return {
+          ...p,
+          campDirectives: [newDirective, ...(p.campDirectives || [])],
+        };
+      }
+      return p;
+    });
+
+    saveProjects(updated);
+    triggerConfetti();
+    return true;
+  };
+
+  // Respond to Camp Directive (Student/Organizer accepts or declines)
+  const respondToCampDirective = async (
+    projectId: string,
+    directiveId: string,
+    action: 'accept' | 'decline',
+    responseNote?: string
+  ): Promise<boolean> => {
+    const updated = projects.map((p) => {
+      if (p.id === projectId) {
+        const targetDir = p.campDirectives?.find((d) => d.id === directiveId);
+        if (!targetDir || targetDir.status !== DirectiveStatus.Pending) return p;
+
+        const isAccept = action === 'accept';
+        const updatedDirectives = (p.campDirectives || []).map((d) => {
+          if (d.id === directiveId) {
+            return {
+              ...d,
+              status: isAccept ? DirectiveStatus.Accepted : DirectiveStatus.Declined,
+              reviewedAt: new Date().toISOString().replace('T', ' ').slice(0, 16),
+              responseNote:
+                responseNote ||
+                (isAccept
+                  ? 'ทีมงานผู้จัดค่ายยินดีตอบรับคำขอนี้ และนำเข้าสู่กำหนดการกิจกรรมค่ายเรียบร้อยครับ'
+                  : 'ทีมงานต้องขออภัยที่ไม่สามารถจัดทำตามเงื่อนไขนี้ได้เนื่องจากข้อจำกัดด้านเวลาและทรัพยากร'),
+            };
+          }
+          return d;
+        });
+
+        if (isAccept) {
+          const newBacker = {
+            address: targetDir.sponsorAddress,
+            amount: targetDir.amount,
+            amountTHB: targetDir.amountTHB ?? Math.round(targetDir.amount * 120000),
+            packageId: 4,
+            tierName: 'Directive Sponsor (คำขอทิศทาง)',
+            timestamp: new Date().toISOString().replace('T', ' ').slice(0, 16),
+            txHash: targetDir.txHash,
+            isDirective: true,
+            directiveTitle: targetDir.title,
+          };
+
+          return {
+            ...p,
+            campRaisedTHB: (p.campRaisedTHB ?? Math.round(p.raisedAmount * 120000)) + (targetDir.amountTHB ?? Math.round(targetDir.amount * 120000)),
+            sponsorsCount: p.sponsorsCount + 1,
+            campDirectives: updatedDirectives,
+            backersList: [newBacker, ...(p.backersList || [])],
+          };
+        } else {
+          return {
+            ...p,
+            campDirectives: updatedDirectives,
+          };
+        }
+      }
+      return p;
+    });
+
+    saveProjects(updated);
+    if (action === 'accept') {
+      triggerConfetti();
+    }
+    return true;
+  };
+
   // Create Project
   const createNewProject = async (newProjectData: Partial<Project>): Promise<string> => {
     const newId = `proj-${Date.now()}`;
     const fullProject: Project = {
       id: newId,
+      creatorProfileId: newProjectData.creatorProfileId,
       onChainId: projects.length + 1,
       title: newProjectData.title || 'Untitled Project',
       tagline: newProjectData.tagline || '',
@@ -317,12 +479,18 @@ export function Web3Provider({ children }: { children: React.ReactNode }) {
       ownerName: newProjectData.ownerName || account.name,
       university: newProjectData.university || 'สถาบันการศึกษา',
       coverImage: newProjectData.coverImage || 'https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?auto=format&fit=crop&w=1200&q=80',
-      goalAmount: Number(newProjectData.goalAmount) || 1.0,
+      goalAmount: newProjectData.isCampProject ? 0 : (Number(newProjectData.goalAmount) || 1.0),
       raisedAmount: 0,
+      campGoalTHB: newProjectData.campGoalTHB,
+      campRaisedTHB: newProjectData.isCampProject ? 0 : undefined,
       deadline: newProjectData.deadline || '2026-12-31',
       status: ProjectStatus.PendingReview, // Need admin approval
       milestones: newProjectData.milestones || [],
       sponsorsCount: 0,
+      isCampProject: newProjectData.isCampProject || newProjectData.category === 'Camp',
+      campDetails: newProjectData.campDetails,
+      campDirectives: newProjectData.campDirectives || [],
+      customAgreement: newProjectData.customAgreement,
       backersList: [],
     };
 
@@ -355,6 +523,8 @@ export function Web3Provider({ children }: { children: React.ReactNode }) {
         approveProjectAdmin,
         openDispute,
         resolveDispute,
+        submitCampDirective,
+        respondToCampDirective,
         createNewProject,
         resetToDefault,
       }}
